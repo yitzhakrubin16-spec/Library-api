@@ -237,3 +237,4 @@ http://127.0.0.1:8000/docs
 ```
 
 The API can be tested from Swagger or Postman.
+
