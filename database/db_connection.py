@@ -30,19 +30,21 @@ class DBManager:
         connection = self.get_connection()
         self.cursor = connection.cursor(dictionary=True)
         
-        self.cursor.execute("""CREATE TABLE IF NOT EXISTS books (id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(50) NOT NULL,
-        author VARCHAR(50) NOT NULL,
-        genre ENUM('Fiction','Non-Fiction','Science','History','Other') NOT NULL,
-        is_available BOOL NOT NULL DEFAULT TRUE,
-        borrowed_by_member_id INT DEFAULT NULL);""")
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS books 
+                            (id INT AUTO_INCREMENT PRIMARY KEY,
+                            title VARCHAR(50) NOT NULL,
+                            author VARCHAR(50) NOT NULL,
+                            genre ENUM('Fiction','Non-Fiction','Science','History','Other') NOT NULL,
+                            is_available BOOL NOT NULL DEFAULT TRUE,
+                            borrowed_by_member_id INT DEFAULT NULL);""")
+                                                
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS members 
+                            (id INT AUTO_INCREMENT PRIMARY KEY,
+                            name VARCHAR(50) NOT NULL,
+                            email VARCHAR(255) UNIQUE NOT NULL,
+                            is_active BOOL NOT NULL DEFAULT TRUE,
+                            total_borrows INT NOT NULL DEFAULT 0);""")
                             
-        self.cursor.execute("""CREATE TABLE IF NOT EXISTS members (id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(50) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        is_active BOOL NOT NULL DEFAULT TRUE,
-        total_borrows INT NOT NULL DEFAULT 0 );""")
-        
         connection.commit()
         self.cursor.close()
         return
