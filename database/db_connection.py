@@ -1,7 +1,7 @@
 import mysql.connector
 
 class DBManager:
-    def __init__(self, config = {"host":"localhost",
+    def __init__(self, config: dict = {"host":"localhost",
                                  "port": 3306,
                                  "user": "root",
                                  "password":"secret",
