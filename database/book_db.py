@@ -1,15 +1,17 @@
 from database.db_connection import DBManager
+from schemas import CreateBook, UpdateBook
 
 
 class BookDB:
     def __init__(self, db:DBManager):
         self.db = db
 
-    def create_book(self, data: dict):
+    def create_book(self, data: CreateBook):
         connection = self.db.get_connection()
         cursor = connection.cursor(dictionary=True)
+        book_data = data.model_dump()
         cursor.execute("""insert into books (title, author, genre)
-                        values (%s, %s, %s);""", (data["title"], data["author"], data["genre"]))
+                        values (%s, %s, %s);""", (book_data["title"], book_data["author"], book_data["genre"]))
         connection.commit()
         cursor.close()
         return
@@ -29,20 +31,20 @@ class BookDB:
         result = cursor.fetchone()
         cursor.close()
         return result
-    
-    def update_book(self, id: int, data: dict):
+   
+   
+    def update_book(self, id: int, data: UpdateBook):
         connection = self.db.get_connection()
         cursor = connection.cursor()
 
-        allowed_fields = {"title", "author", "genre"}
+        book_data = data.model_dump(exclude_unset=True)
 
         fields = []
         values = []
 
-        for key, value in data.items():
-            if key in allowed_fields:
-                fields.append(f"{key} = %s")
-                values.append(value)
+        for key, value in book_data.items():
+            fields.append(f"{key} = %s")
+            values.append(value)
 
         if not fields:
             cursor.close()
@@ -62,7 +64,6 @@ class BookDB:
         cursor.close()
 
         return True
-    
     def set_available(self, id, val, member_id):
         connection = self.db.get_connection()
         cursor = connection.cursor()
@@ -90,7 +91,7 @@ class BookDB:
         cursor = connection.cursor()
 
         cursor.execute("select count(*) from books;")
-        res = cursor.fetchone()
+        res = cursor.fetchone()[0]
         cursor.close()
         return res
     
@@ -134,7 +135,7 @@ class BookDB:
             SELECT COUNT(*)
             FROM books
             WHERE borrowed_by_member_id = %s
-              AND is_available = %s
+            AND is_available = %s
             """,
             (member_id, False)
         )

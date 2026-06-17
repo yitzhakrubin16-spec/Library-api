@@ -1,16 +1,17 @@
 from database.db_connection import DBManager
-
+from schemas import CreateMember, UpdateMember
 
 class MemberDB:
     def __init__(self, db:DBManager):
         self.db = db
 
-    def create_member(self, data):
+    def create_member(self, data: CreateMember):
         connection = self.db.get_connection()
         cursor = connection.cursor(dictionary=True)
-        
+        member_data = data.model_dump()
+
         cursor.execute("""insert into members (name, email)
-                        values (%s, %s);""", (data["name"], data["email"]))
+                        values (%s, %s);""", (member_data["name"], member_data["email"]))
         connection.commit()
         cursor.close()
         return
@@ -33,23 +34,22 @@ class MemberDB:
         cursor.close()
         return res
     
-    def update_member(self, id, data):
+    def update_member(self, id: int, data: UpdateMember):
         connection = self.db.get_connection()
-        cursor = connection.cursor(dictionary=True)
-        
-        allowed_fields = {"name", "email"}
-        
+        cursor = connection.cursor()
+
+        member_data = data.model_dump(exclude_unset=True)
+
         fields_to_update = []
         values = []
 
-        for key, value in data.items():
-            if key in allowed_fields:
-                fields_to_update.append(f"{key} = %s")
-                values.append(value)
+        for key, value in member_data.items():
+            fields_to_update.append(f"{key} = %s")
+            values.append(value)
 
         if not fields_to_update:
             cursor.close()
-            return False  
+            return False
 
         query = f"""
             UPDATE members
@@ -134,3 +134,21 @@ class MemberDB:
         cursor.close()
 
         return result
+    
+    def get_member_by_email(self, email: str):
+        connection = self.db.get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute(
+            """
+            SELECT *
+            FROM members
+            WHERE email = %s
+            """,
+            (email,)
+        )
+
+        member = cursor.fetchone()
+        cursor.close()
+
+        return member
